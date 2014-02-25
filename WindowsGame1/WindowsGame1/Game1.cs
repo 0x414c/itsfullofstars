@@ -32,7 +32,7 @@ namespace WindowsGame1 {
         //private string systemUptime = "";
         private float timer;
 
-        private const int renderPassesCount = 2;
+        private const int renderPassesCount = 3;
         private const int screenWidth = 1280;
         private const int screenHeight = 1024;
         private const bool isFullscreen = true;
@@ -84,8 +84,8 @@ namespace WindowsGame1 {
 
             myEffect = Content.Load<Effect>("Effect1");
             Debug.Assert(renderPassesCount < myEffect.CurrentTechnique.Passes.Count);
-            myEffect.Parameters["WID"].SetValue(graphics.PreferredBackBufferWidth);
-            myEffect.Parameters["HE"].SetValue(graphics.PreferredBackBufferHeight);
+            myEffect.Parameters["WIDTH"].SetValue(graphics.PreferredBackBufferWidth);
+            myEffect.Parameters["HEIGHT"].SetValue(graphics.PreferredBackBufferHeight);
 
             mySpriteFont = Content.Load<SpriteFont>("SpriteFont1");
 
@@ -129,7 +129,7 @@ namespace WindowsGame1 {
             // TODO: Add your update logic here
             text = DateTime.Now.ToString(CultureInfo.InvariantCulture);
             //systemUptime = UpTime.ToString();
-            timer+=0.1f;
+            timer += 0.01f;
             particleEngine.EmitterLocation = new Vector2(
                 graphics.PreferredBackBufferWidth / 2.0f,
                 graphics.PreferredBackBufferHeight / 2.0f);
@@ -157,14 +157,14 @@ namespace WindowsGame1 {
         private void Drawer(SpriteBatch sprite) {
             particleEngine.Draw(spriteBatch);
             sprite.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            sprite.DrawString(mySpriteFont, timer.ToString(CultureInfo.InvariantCulture), new Vector2(
-                graphics.PreferredBackBufferWidth - 400,
+            sprite.DrawString(mySpriteFont, String.Format("{0,10:F2}", timer), new Vector2(
+                graphics.PreferredBackBufferWidth - 250,
                 graphics.PreferredBackBufferHeight - 100),
-                Color.White);
+                Color.Gray);
             sprite.DrawString(mySpriteFont, text, new Vector2(
-                100,
+                72,
                 graphics.PreferredBackBufferHeight - 100),
-                Color.White);
+                Color.LightGray);
             //sprite.Draw(vignetteTexture, new Rectangle(0, 0,
             //        graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight),
             //        Color.White);
