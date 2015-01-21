@@ -12,15 +12,16 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
+
 namespace WindowsGame1 {
     /// <summary>
     /// This is the main type for your game
     /// </summary>
     public class Game1 : Microsoft.Xna.Framework.Game {
-        readonly GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        readonly GraphicsDeviceManager graphicsDeviceManager;
+        private SpriteBatch spriteBatch;
 
-        private readonly RenderTarget2D[] myRenderTarget2D = new RenderTarget2D[2];
+        private RenderTarget2D[] myRenderTarget2D;
         private Texture2D bufferTexture;
         private Texture2D mySceneBackground;
         //private Texture2D vignetteTexture;
@@ -28,23 +29,24 @@ namespace WindowsGame1 {
         private SpriteFont mySpriteFont;
         private ParticleEngine particleEngine;
 
-        private string text = "";
+        private string dateString = "";
         //private string systemUptime = "";
         private float timer;
 
         private const int renderPassesCount = 3;
-        private const int screenWidth = 1280;
-        private const int screenHeight = 1024;
+
+        private int screenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        private int screenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         private const bool isFullscreen = true;
 
 
         public Game1() {
-            graphics = new GraphicsDeviceManager(this);
+            graphicsDeviceManager = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            graphics.IsFullScreen = isFullscreen;
-            graphics.PreferredBackBufferWidth = screenWidth;
-            graphics.PreferredBackBufferHeight = screenHeight;
+            graphicsDeviceManager.IsFullScreen = isFullscreen;
+            graphicsDeviceManager.PreferredBackBufferWidth = screenWidth;
+            graphicsDeviceManager.PreferredBackBufferHeight = screenHeight;
         }
 
         /// <summary>
@@ -57,14 +59,16 @@ namespace WindowsGame1 {
             // TODO: Add your initialization logic here
             Debug.Assert(renderPassesCount >= 0);
 
+            myRenderTarget2D = new RenderTarget2D[2];     
             for (int i = 0; i < 2; i++) {
                myRenderTarget2D[i] = new RenderTarget2D(
-               GraphicsDevice,
-               GraphicsDevice.PresentationParameters.BackBufferWidth,
-               GraphicsDevice.PresentationParameters.BackBufferHeight,
-               false,
-               GraphicsDevice.PresentationParameters.BackBufferFormat,
-               DepthFormat.Depth24);
+                   GraphicsDevice,
+                   GraphicsDevice.PresentationParameters.BackBufferWidth,
+                   GraphicsDevice.PresentationParameters.BackBufferHeight,
+                   false,
+                   GraphicsDevice.PresentationParameters.BackBufferFormat,
+                   DepthFormat.Depth24
+               );
             }
             
             base.Initialize();
@@ -84,17 +88,17 @@ namespace WindowsGame1 {
 
             myEffect = Content.Load<Effect>("Effect1");
             Debug.Assert(renderPassesCount < myEffect.CurrentTechnique.Passes.Count);
-            myEffect.Parameters["WIDTH"].SetValue(graphics.PreferredBackBufferWidth);
-            myEffect.Parameters["HEIGHT"].SetValue(graphics.PreferredBackBufferHeight);
+            myEffect.Parameters["WIDTH"].SetValue(graphicsDeviceManager.PreferredBackBufferWidth);
+            myEffect.Parameters["HEIGHT"].SetValue(graphicsDeviceManager.PreferredBackBufferHeight);
 
             mySpriteFont = Content.Load<SpriteFont>("SpriteFont1");
 
-            var textures = new List<Texture2D> {
+            var particlesTextures = new List<Texture2D> {
                 Content.Load<Texture2D>("star"),
                 Content.Load<Texture2D>("diamond"),
                 Content.Load<Texture2D>("circle")
             };
-            particleEngine = new ParticleEngine(textures, new Vector2(400, 240));
+            particleEngine = new ParticleEngine(particlesTextures, new Vector2(400, 240));
         }
 
         /// <summary>
@@ -124,47 +128,41 @@ namespace WindowsGame1 {
         protected override void Update(GameTime gameTime) {
             // Allows the game to exit
             if (Keyboard.GetState().IsKeyDown(Keys.Escape) ||
-                GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+                GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed) {
                 Exit();
+            }
             // TODO: Add your update logic here
-            text = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+            dateString = DateTime.Now.ToString(CultureInfo.InvariantCulture);
             //systemUptime = UpTime.ToString();
             timer += 0.01f;
             particleEngine.EmitterLocation = new Vector2(
-                graphics.PreferredBackBufferWidth / 2.0f,
-                graphics.PreferredBackBufferHeight / 2.0f);
+                graphicsDeviceManager.PreferredBackBufferWidth / 2.0f,
+                graphicsDeviceManager.PreferredBackBufferHeight / 2.0f
+            );
             //particleEngine.EmitterLocation = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
             particleEngine.Update();
             base.Update(gameTime);
         }
 
-        //private void DrawModel(Model model) {
-        //    Matrix world = Matrix.CreateTranslation(new Vector3(0, 0, 0));
-        //    Matrix view = Matrix.CreateLookAt(new Vector3(10, 10, 10), new Vector3(0, 0, 0), Vector3.UnitY);
-        //    Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), 800f / 480f, 0.1f, 100f);
-
-        //    foreach (ModelMesh mesh in model.Meshes) {
-        //        foreach (BasicEffect effect in mesh.Effects) {
-        //            effect.EnableDefaultLighting();
-        //            effect.World = world;
-        //            effect.View = view;
-        //            effect.Projection = projection;
-        //        }
-        //        mesh.Draw();
-        //    }
-        //}
-
         private void Drawer(SpriteBatch sprite) {
             particleEngine.Draw(spriteBatch);
             sprite.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            sprite.DrawString(mySpriteFont, String.Format("{0,10:F2}", timer), new Vector2(
-                graphics.PreferredBackBufferWidth - 250,
-                graphics.PreferredBackBufferHeight - 100),
-                Color.Gray);
-            sprite.DrawString(mySpriteFont, text, new Vector2(
-                72,
-                graphics.PreferredBackBufferHeight - 100),
-                Color.LightGray);
+            sprite.DrawString(
+                mySpriteFont, String.Format("{0,10:F2}", timer),
+                new Vector2(
+                    graphicsDeviceManager.PreferredBackBufferWidth - 250,
+                    graphicsDeviceManager.PreferredBackBufferHeight - 100
+                ),
+                Color.LightGray
+            );
+            sprite.DrawString(
+                mySpriteFont, dateString,
+                new Vector2(
+                    72,
+                    graphicsDeviceManager.PreferredBackBufferHeight - 100
+                ),
+                Color.LightGray
+            );
             //sprite.Draw(vignetteTexture, new Rectangle(0, 0,
             //        graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight),
             //        Color.White);
@@ -186,10 +184,16 @@ namespace WindowsGame1 {
             using (var sprite = new SpriteBatch(GraphicsDevice)) {
                 sprite.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
                 effect.CurrentTechnique.Passes[pass].Apply();
-                sprite.Draw(picture, new Rectangle(0, 0,
-                    graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight),
-                    Color.White); //Draw bg or rendertarget if multipass.
-                sprite.End(); //
+                sprite.Draw(
+                    picture,
+                    new Rectangle(
+                        0, 0,
+                        graphicsDeviceManager.PreferredBackBufferWidth,
+                        graphicsDeviceManager.PreferredBackBufferHeight
+                    ),
+                    Color.White
+                );
+                sprite.End();
                 if (pass == 0) {
                     Drawer(sprite);
                 }
@@ -203,17 +207,19 @@ namespace WindowsGame1 {
 
         /// <summary>
         /// Applies the given shader passes sequentially.
-        /// Draws with 2 swapping render targets.
         /// </summary>
         /// <returns>A texture2D with the final result.</returns>
-        private Texture2D MultipassRenderer2D(RenderTarget2D[] renderTarget, int sPass, int ePass, Texture2D initialTexture2D) {
-            int i = sPass;
+        private Texture2D MultipassRenderer2D(RenderTarget2D[] renderTarget, int startingPass, int endingPass, Texture2D initialTexture) {
+            int i = startingPass;
             //Draw background for 1 time.
-            DrawToTexture(myRenderTarget2D[0], initialTexture2D, myEffect, sPass);
+            DrawToTexture(myRenderTarget2D[0], initialTexture, myEffect, startingPass);
             //Apply different shader passes by swapping 2 targets
-            while (i <= ePass) {
-                if (i % 2 == 0) DrawToTexture(myRenderTarget2D[1], myRenderTarget2D[0], myEffect, i);
-                else DrawToTexture(myRenderTarget2D[0], myRenderTarget2D[1], myEffect, i);
+            while (i <= endingPass) {
+                if (i % 2 == 0) {
+                    DrawToTexture(myRenderTarget2D[1], myRenderTarget2D[0], myEffect, i);
+                } else {
+                    DrawToTexture(myRenderTarget2D[0], myRenderTarget2D[1], myEffect, i);
+                }
                 i++;
             }
             //Return last processed target.
@@ -230,13 +236,20 @@ namespace WindowsGame1 {
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearClamp, DepthStencilState.Default,
-                RasterizerState.CullNone);
-            spriteBatch.Draw(bufferTexture,
+            spriteBatch.Begin(
+                SpriteSortMode.Immediate,
+                BlendState.Opaque,
+                SamplerState.LinearClamp,
+                DepthStencilState.Default,
+                RasterizerState.CullNone
+            );
+            spriteBatch.Draw(
+                bufferTexture,
                 new Rectangle(0, 0,
                 GraphicsDevice.PresentationParameters.BackBufferWidth,
                 GraphicsDevice.PresentationParameters.BackBufferHeight),
-                Color.White);
+                Color.White
+            );
             spriteBatch.End();
 
             base.Draw(gameTime);

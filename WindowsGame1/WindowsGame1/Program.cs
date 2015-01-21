@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Windows.Forms;
 
+
 namespace WindowsGame1 {
 #if WINDOWS || XBOX
     internal static class Program {
@@ -25,13 +26,18 @@ namespace WindowsGame1 {
                         Start();
                         break;
                 }
-            }
-            else {
-                DialogResult result = MessageBox.Show("(c) 2014, 0x414c!\nwww.0x414c.tk\nPress OK to run demonstration.",
-                            "About", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                if (result == DialogResult.OK)
+            } else {
+                DialogResult result = MessageBox.Show(
+                    "itsfullostars -- Classic Windows 'Starfield' screensaver recreated.\n\nPress OK to run demonstration.",
+                    "About",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Information
+                );
+                if (result == DialogResult.OK) {
                     Start();
-                else return;
+                } else {
+                    return;
+                }
             }
         }
 

@@ -23,7 +23,7 @@ float4 Sharpen(float2 coords0: TEXCOORD0, float4 color0: COLOR0): COLOR0
 
 float4 CRT(float4 color: COLOR0, float2 texCoord : TEXCOORD0): COLOR0 
 { 
-	float2 texCoordOffset = float2(0.0015f, 0.0f); 
+	float2 texCoordOffset = float2(0.00125f, 0.0f); 
 	float r = tex2D(ColorMapSampler, texCoord - texCoordOffset).r; 
 	float g = tex2D(ColorMapSampler, texCoord).g; 
 	float b = tex2D(ColorMapSampler, texCoord + texCoordOffset).b; 
@@ -31,7 +31,7 @@ float4 CRT(float4 color: COLOR0, float2 texCoord : TEXCOORD0): COLOR0
  
 	//float4 scanlineColor = 1.5f * float4(1, 1, 1, 1.0f) * abs(sin(texCoord.y * 768) + 0.0f); 
 	//float4 scanlineColor = 0.3f + abs(sin(texCoord.y * 768));
-	float4 scanlineColor = 0.15f + saturate(HEIGHT / 1.5f * texCoord.y % 2 + 0.2f); //640 is texture width
+	float4 scanlineColor = 0.15f + saturate(HEIGHT / 1.5f * texCoord.y % 2 + 0.2f); //640 is texture width //WTF?
 	
 	return color * imageColor * scanlineColor; 
 } 
@@ -118,13 +118,13 @@ float4 Bright(float2 texCoord: TEXCOORD0, float4 color: COLOR0): COLOR0
 }
 
 technique Main {
-	pass Nothing { PixelShader = compile ps_2_0 Nothing(); }
-	//pass Amber { PixelShader = compile ps_2_0 Amber(); }
+	//pass Sharpen { PixelShader = compile ps_2_0 Sharpen(); }
+	pass Brighten { PixelShader = compile ps_2_0 Bright(); }
+	pass Amber { PixelShader = compile ps_2_0 Amber(); }
+	//pass Nothing { PixelShader = compile ps_2_0 Nothing(); }
 	//pass Green { PixelShader = compile ps_2_0 Green(); }
 	//pass Orange { PixelShader = compile ps_2_0 Orange(); }
-	//pass Sharpen { PixelShader = compile ps_2_0 Sharpen(); }
-	//pass CRT { PixelShader = compile ps_2_0 CRT(); }
-	pass Brighten { PixelShader = compile ps_2_0 Bright(); }
-	pass LCD { PixelShader = compile ps_2_0 LCD(); }
+	pass CRT { PixelShader = compile ps_2_0 CRT(); }
+	//pass LCD { PixelShader = compile ps_2_0 LCD(); }
 	pass Barrel { PixelShader = compile ps_2_0 Distort(); }
 }
